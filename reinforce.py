@@ -41,7 +41,7 @@ logger = get_logger(__name__)
 parser = argparse.ArgumentParser(description='NAS')
 
 parser.add_argument('--model', type=str, default='nas', help='nas | amb | both')
-parser.add_argument('--dataset', type=str, default='all') #default='Datasets.UCI.UCI_beijing')
+parser.add_argument('--dataset', type=str, default='all')  # default='Datasets.UCI.UCI_beijing')
 parser.add_argument('--model_dir', type=str, default='logs')
 
 parser.add_argument('--controller_hid', type=int, default=100)
@@ -467,7 +467,7 @@ class SimpleNAS:
             fp.write(str(self.controller) + '\n' + num_params)
 
         # TODO: try higher
-        #self.controller_lr = 3.5e-4  # the default
+        # self.controller_lr = 3.5e-4  # the default
         self.controller_lr = 1e-3
         self.controller_optim  = to.optim.Adam(self.controller.parameters(), lr=self.controller_lr)
 
@@ -477,7 +477,7 @@ class SimpleNAS:
         self.start_time = time.time()
         self.epoch = 1
 
-        stop = self.train_controller()    
+        stop = self.train_controller()
         logger.info('model_dir: %s', args.model_dir)
 
     def train_controller(self):
@@ -546,13 +546,13 @@ class SimpleNAS:
                     self.best_genome = genome
                     self.best_model = model
 
-                #print('-'*100)
+                # print('-'*100)
                 # print('genome.trained', genome.trained)
                 # for module in model.modules:
                 #     id_ = module.id_
                 #     print('id_', id_)
                 #     print(genome.nodes[id_].parameters.keys())
-          
+
                 # print('*'*100)
                 # for key, gene in genome.nodes.items():
                 #     gene_orig = self.vocab.get(gene.key_orig, None)
@@ -667,7 +667,8 @@ class SimpleNAS:
                 else:
                     n_gens = int(np.round(self.n_models / args.log_step_genome))
                     if n_gens >= args.max_generations + 1:
-                        logger.info('Stopping b/c max_generations: {}/{}. Run time: {}'.format(n_gens, args.max_generations, elapsed_time))
+                        logger.info('Stopping b/c max_generations: {}/{}. Run time: {}'.format(n_gens,
+                                                                                               args.max_generations, elapsed_time))
                         return True
 
         logger.info('Controller finished training within time: {}'.format(elapsed_time))
@@ -743,8 +744,8 @@ class SimpleNAS:
 
             # can't do this in AMB b/c you don't have the model
             self.tb.scalar_summary(f'best_genome/num_params',
-                       utils.num_params(self.best_model),
-                       self.controller_step)
+                                   utils.num_params(self.best_model),
+                                   self.controller_step)
 
             # generation summary
             fitnesses = [x[0].fitness for x in genomes_all]
@@ -828,7 +829,7 @@ def eval_model(model, dp, df):
 
 
 def main():
-    
+
     sys.path.append(os.path.join(settings.ROOT_DIR, 'tests'))
     from datasets import Datasets
 
@@ -840,12 +841,12 @@ def main():
 
     # df_meta = pd.read_csv('/home/jgoode/amb-data/meta-feats.csv',
     #                       index_col='dataset_name').drop(['Unnamed: 0'], axis=1)
-    
+
     now = utils.get_time()
     model_dir = args.model_dir
 
     for d in datasets:
-        
+
         df_train = d.train()
         df_test = d.test()
         target = d.meta().target
@@ -870,41 +871,59 @@ def main():
             os.makedirs(args.model_dir)
 
             utils.save_args(args)
-            
+
             if model_type == 'nas':
-                settings.SHARE_WEIGHTS = False
+                
+                settings.SHARE_WEIGHTS = True
 
                 model = SimpleNAS(profile=dp)
+
+                start_time = time.time()
                 model.fit(x_train, y_train, use_tensorboard=True)
+                train_time = time.time() - start_time
 
                 test_score = eval_model(model, dp, df_test)
                 logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, test_score))
 
             elif model_type == 'amb':
+
                 settings.SHARE_WEIGHTS = False
 
                 from amb.model.supervised.amune import Amune
 
                 if args.max_generations is not None:
                     # am = AutoModel(max_generation=args.max_generation, show_plots=False)
-                    model = Amune(max_generation=args.max_generations, profile=dp, skl_genomes=False, tb_logdir=args.model_dir)
+                    model = Amune(max_generation=args.max_generations,
+                                  profile=dp,
+                                  skl_genomes=False,
+                                  tb_logdir=args.model_dir)
                 else:
                     assert args.max_time > 0
-                    model = Amune(max_time=args.max_time, profile=dp, skl_genomes=False, tb_logdir=args.model_dir)
+                    model = Amune(max_time=args.max_time,
+                                  profile=dp,
+                                  skl_genomes=False,
+                                  tb_logdir=args.model_dir)
 
+                start_time = time.time()
                 model.fit(x_train, y_train)
-                
+                train_time = time.time() - start_time
+
                 test_score = eval_model(model, dp, df_test)
                 logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, test_score))
-                    
+
             else:
                 raise ValueError('Unknown model: %s' % model_type)
 
-            output = {'model_type': model_type, 'dataset': name, 
-                      'test_score': test_score, 'model': model.best_genome.model_string}
+            output = {'data_name': name,
+                      'model_type': model_type,
+                      'test_score': test_score,
+                      'models': model.best_genome.model_string,
+                      'outdir': args.model_dir,
+                      'train_time': train_time,
+                      }
 
             with open(os.path.join(model_dir, 'results.json'), 'a') as f:
                 f.write(json.dumps(output) + '\n')
-            
+
 if __name__ == '__main__':
     main()

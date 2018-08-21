@@ -157,8 +157,10 @@ if __name__ == '__main__':
         dat.append(out)
 
     df = pd.DataFrame(dat)
-    df.to_csv('/home/jgoode/amb-data/meta-feats.csv')
+    # df.to_csv('/home/jgoode/amb-data/meta-feats.csv')
+    df.to_csv('meta-feats.csv')
 
     print('bads sets: ', [x.meta().name for x in bads])
 
-    #df2 = pd.read_csv('/home/jgoode/amb-data/meta-feats.csv', index_col='dataset_name').drop(['Unnamed: 0'], axis=1)
+    # df2 = pd.read_csv('/home/jgoode/amb-data/meta-feats.csv',
+    #     index_col='dataset_name').drop(['Unnamed: 0'], axis=1)
