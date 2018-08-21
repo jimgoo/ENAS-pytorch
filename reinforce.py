@@ -836,9 +836,10 @@ def main():
         from compare_models import datasets
     else:
         datasets = [eval(args.dataset)]
-    
-    df_meta = pd.read_csv('/home/jgoode/amb-data/meta-feats.csv',
-                          index_col='dataset_name').drop(['Unnamed: 0'], axis=1)
+    logger.info('Number of datasets: {}'.format(len(datasets)))
+
+    # df_meta = pd.read_csv('/home/jgoode/amb-data/meta-feats.csv',
+    #                       index_col='dataset_name').drop(['Unnamed: 0'], axis=1)
     
     now = utils.get_time()
     model_dir = args.model_dir
@@ -871,13 +872,13 @@ def main():
             utils.save_args(args)
             
             if model_type == 'nas':
-                settings.SHARE_WEIGHTS = True
+                settings.SHARE_WEIGHTS = False
 
                 model = SimpleNAS(profile=dp)
                 model.fit(x_train, y_train, use_tensorboard=True)
 
                 test_score = eval_model(model, dp, df_test)
-                logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, score_nas))
+                logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, test_score))
 
             elif model_type == 'amb':
                 settings.SHARE_WEIGHTS = False
@@ -894,13 +895,14 @@ def main():
                 model.fit(x_train, y_train)
                 
                 test_score = eval_model(model, dp, df_test)
-                logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, score_amb))
+                logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, test_score))
                     
             else:
                 raise ValueError('Unknown model: %s' % model_type)
 
             output = {'model_type': model_type, 'dataset': name, 
                       'test_score': test_score, 'model': model.best_genome.model_string}
+
             with open(os.path.join(model_dir, 'results.json'), 'a') as f:
                 f.write(json.dumps(output) + '\n')
             
