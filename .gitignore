@@ -9,7 +9,7 @@ data/cifar-10-batches-py
 
 # Log
 logs
-logs-old
+logs-*
 
 # ETC
 .vscode
