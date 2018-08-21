@@ -271,7 +271,7 @@ class Controller(to.nn.Module):
 
         # create input gene
         input_gene = LinearLayer(key=-1)
-        input_gene.key_orig = input_gene.key
+        # input_gene.key_orig = input_gene.key
         input_gene.numunits = self.n_inputs
         input_gene.enabled = True
         input_gene.activation = 'identity'
@@ -302,7 +302,7 @@ class Controller(to.nn.Module):
 
         # create output gene
         output_gene = LinearLayer(key=0)
-        output_gene.key_orig = output_gene.key
+        # output_gene.key_orig = output_gene.key
         output_gene.numunits = self.n_outputs
         output_gene.enabled = True
         output_gene.activation = 'identity'
@@ -546,31 +546,19 @@ class SimpleNAS:
                     self.best_genome = genome
                     self.best_model = model
 
-                # print('-'*100)
-                # print('genome.trained', genome.trained)
-                # for module in model.modules:
-                #     id_ = module.id_
-                #     print('id_', id_)
-                #     print(genome.nodes[id_].parameters.keys())
-
-                # print('*'*100)
-                # for key, gene in genome.nodes.items():
-                #     gene_orig = self.vocab.get(gene.key_orig, None)
-                #     print(key, gene.key_orig, gene_orig, gene)
-                #     if gene_orig is not None:
-                #         #function = to.nn.Linear(input_units, self.numunits)
-                #         ipdb.set_trace()
-                #     #    self.vocab[node.key_orig].set_parameters(gene.function)
-                # print('*'*100)
-
-                # print('*'*100)
-                # for key, module in model.genome.nodes.items():
-                #     key_orig = module.key_orig
-                #     gene_orig = self.vocab.get(key_orig, None)
-                #     if gene_orig is not None:
-                #         module = module.torch()
-                #         self.vocab[key_orig].set_parameters(module)
-                # print('*'*100)
+                # set the trained weights back to the set of vocab genes
+                try:
+                    # print('*'*100)
+                    for module in model.modules[:-1]:
+                        id_ = module.id_
+                        gene = model.genome.nodes[id_]
+                        key_orig = gene.key_orig
+                        gene_orig = self.vocab.get(key_orig, None)
+                        #print(gene_orig.parameters.keys())
+                        gene_orig.save_parameters(module.function.state_dict())
+                        #print(self.vocab[key_orig].parameters.keys())
+                except:
+                    ipdb.set_trace()
 
                 """
                 hist = {'time': time.time(),
@@ -874,8 +862,6 @@ def main():
 
             if model_type == 'nas':
                 
-                settings.SHARE_WEIGHTS = True
-
                 model = SimpleNAS(profile=dp)
 
                 start_time = time.time()
@@ -886,8 +872,6 @@ def main():
                 logger.info('DONE: model_dir: {}: score: {}'.format(args.model_dir, test_score))
 
             elif model_type == 'amb':
-
-                settings.SHARE_WEIGHTS = False
 
                 from amb.model.supervised.amune import Amune
 
