@@ -4,3 +4,6 @@ scipy
 imageio
 pygraphviz
 tensorboardX
+
+# conda install -y pytorch==0.3.1 torchvision cuda80 -c soumith
+# conda install -y tensorboard-gpu

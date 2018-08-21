@@ -1,0 +1,16 @@
+digraph neural {
+	inputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD>dt</TD><TD>DEWP</TD><TD>TEMP</TD><TD>PRES</TD><TD>cbwd</TD><TD>Iws</TD><TD>Is</TD><TD>Ir</TD><TD>gap</TD></TR></TABLE>> color=orange shape=record style=filled]
+	"LSTM_1
+4
+gauss" [shape=box]
+	inputs -> "LSTM_1
+4
+gauss" [color=black]
+	"LSTM_1
+4
+gauss" [shape=box]
+	outputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD>pm2.5</TD></TR></TABLE>> color=red shape=record style=filled]
+	"LSTM_1
+4
+gauss" -> outputs [color=black]
+}

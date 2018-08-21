@@ -1,0 +1,38 @@
+digraph neural {
+	"LinearLayer_1
+100
+gauss" [shape=box]
+	outputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD>responded</TD></TR></TABLE>> color=red shape=record style=filled]
+	"LinearLayer_1
+100
+gauss" -> outputs [color=black]
+	inputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD> Inputs </TD></TR></TABLE>> color=orange shape=record style=filled]
+	"LinearLayer_2
+117
+sigmoid" [shape=box]
+	inputs -> "LinearLayer_2
+117
+sigmoid" [color=black]
+	"LinearLayer_2
+117
+sigmoid" [shape=box]
+	"LinearLayer_3
+91
+relu" [shape=box]
+	"LinearLayer_2
+117
+sigmoid" -> "LinearLayer_3
+91
+relu" [color=black]
+	"LinearLayer_3
+91
+relu" [shape=box]
+	"LinearLayer_1
+100
+gauss" [shape=box]
+	"LinearLayer_3
+91
+relu" -> "LinearLayer_1
+100
+gauss" [color=black]
+}

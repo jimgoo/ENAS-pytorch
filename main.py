@@ -7,6 +7,7 @@ import data
 import config
 import utils
 import trainer
+import trainer2
 
 logger = utils.get_logger()
 
@@ -21,13 +22,19 @@ def main(args):  # pylint:disable=redefined-outer-name
         torch.cuda.manual_seed(args.random_seed)
 
     if args.network_type == 'rnn':
+        assert args.network_type in ('rnn', 'cnn')
         dataset = data.text.Corpus(args.data_path)
     elif args.dataset == 'cifar':
-        dataset = data.image.Image(args.data_path)
+        args.network_type in ('rnn', 'cnn')
+        dataset = data.image.Image(args)
     else:
-        raise NotImplementedError(f"{args.dataset} is not supported")
+        args.network_type not in ('rnn', 'cnn')
+        dataset = data.tabular.Tabular(args)
 
-    trnr = trainer.Trainer(args, dataset)
+    if args.network_type in ('rnn', 'cnn'):
+        trnr = trainer.Trainer(args, dataset)
+    else:
+        trnr = trainer2.Trainer(args, dataset)
 
     if args.mode == 'train':
         utils.save_args(args)

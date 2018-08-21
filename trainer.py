@@ -134,9 +134,12 @@ class Trainer(object):
             if regularizer[1]:
                 logger.info(f'{regularizer[0]}')
 
+        print('original training data size before batching', len(dataset.train))
+
         self.train_data = utils.batchify(dataset.train,
                                          args.batch_size,
                                          self.cuda)
+        
         # NOTE(brendan): The validation set data is batchified twice
         # separately: once for computing rewards during the Train Controller
         # phase (valid_data, batch size == 64), and once for evaluating ppl
@@ -147,6 +150,8 @@ class Trainer(object):
         self.eval_data = utils.batchify(dataset.valid,
                                         args.test_batch_size,
                                         self.cuda)
+
+        # never gets used
         self.test_data = utils.batchify(dataset.test,
                                         args.test_batch_size,
                                         self.cuda)
@@ -539,6 +544,10 @@ class Trainer(object):
         data = Variable(source[idx:idx + length], volatile=volatile)
         target = Variable(source[idx + 1:idx + 1 + length].view(-1),
                           volatile=volatile)
+        
+        #print('batch_size', data.size(), 'source_size', source.size(), 'length', length)
+        # batch_size torch.Size([35, 64]) source_size torch.Size([14524, 64]) length 35
+
         return data, target
 
     @property

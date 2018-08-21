@@ -1,0 +1,10 @@
+Controller(
+  (encoder): Embedding(17, 100)
+  (lstm): LSTMCell(100, 100)
+  (_decoders): ModuleList(
+    (0): Linear(in_features=100, out_features=10, bias=True)
+    (1): Linear(in_features=100, out_features=5, bias=True)
+    (2): Linear(in_features=100, out_features=2, bias=True)
+  )
+)
+num_params: 84,217

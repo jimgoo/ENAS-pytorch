@@ -7,7 +7,7 @@ import json
 import logging
 
 import numpy as np
-import pygraphviz as pgv
+# import pygraphviz as pgv
 
 import torch
 from torch.autograd import Variable
@@ -15,7 +15,6 @@ from torch.autograd import Variable
 from PIL import Image
 from PIL import ImageFont
 from PIL import ImageDraw 
-
 
 try:
     import scipy.misc
@@ -28,6 +27,9 @@ except:
     imresize = cv2.imresize
     imsave = imwrite = cv2.imwrite
 
+import torch as to
+from torch.utils.data import TensorDataset, DataLoader
+import ipdb
 
 ##########################
 # Network visualization
@@ -144,12 +146,17 @@ def update_lr(optimizer, lr):
 
 def batchify(data, bsz, use_cuda):
     # code from https://github.com/pytorch/examples/blob/master/word_language_model/main.py 
+    #import ipdb; ipdb.set_trace()
     nbatch = data.size(0) // bsz
     data = data.narrow(0, 0, nbatch * bsz)
     data = data.view(bsz, -1).t().contiguous()
     if use_cuda:
         data = data.cuda()
     return data
+
+def batchify_loader(data, batch_size):
+    kwargs = {'num_workers': 0, 'pin_memory': False}
+    return DataLoader(data, batch_size=batch_size, shuffle=False, **kwargs)
 
 
 ##########################
@@ -255,3 +262,112 @@ def backup_file(path):
 
     os.rename(path, new_path)
     logger.info("[*] {} has backup: {}".format(path, new_path))
+
+
+# -------------------------------------------------------------------------------------------
+
+
+from amb.model.supervised.task.backprop import backprop_loop, backprop, EarlyStop
+
+"""
+def genome_to_img(amb, dp, genome, path):
+    import plot_deep
+
+    # white = (255,255,255)
+    # black = (0, 0, 0)
+
+    # img = Image.new('RGB', (800, 200))
+    # d = ImageDraw.Draw(img)
+    # d.text((10, 10), txt, fill=white)
+    # img.save(path, optimize=True)
+
+    plot_deep.graph_deep_net(amb, dp=dp, show_disabled=False, prune=True, genome=genome, fname=None, save_file=path.replace('.png', ''))
+"""
+
+"""
+def train_genome(genome, traits, x, y, x_val, y_val, epochs):
+
+    amb = AMB(traits.config)  # dummy for plotting
+
+    model = genome.torch(traits.config, traits.recurrent, traits.is_class, traits.loss.name)
+    optimizer = to.optim.Adam(model.parameters(), lr=0.001)
+    
+    if epochs > 0:
+        early_stop = None
+    else:
+        early_stop = EarlyStop(2, 0.0001)
+        epochs = 50
+
+    model, test_loss = backprop(model, epochs, x, y, traits, optimizer,
+                                x_val=x_val, y_val=y_val, early_stop=early_stop)
+
+    return model, test_loss
+"""
+
+def get_reward(genome, entropies, traits, x, y, x_val, y_val, epochs):
+    """Computes the perplexity of a single sampled model on a minibatch of
+    validation data.
+    """
+    if not isinstance(entropies, np.ndarray):
+        entropies = entropies.data.cpu().numpy()
+
+    # get model's validation loss
+    # model, valid_loss = train_genome(genome, traits, x, y, x_val, y_val, epochs)
+
+    genome, model, valid_loss, bp_iters = backprop_loop(genome, traits, x, y, 
+        optimizer=None, epochs=epochs, x_val=x_val, y_val=y_val, return_all=True, verbose=True)
+    
+    """
+    ## perplexity doesn't make sense for regression...
+    valid_ppl = math.exp(valid_loss)
+    reward_c = 80 # default
+    if False:
+        # TODO: but we do know reward_c=80 in the previous paper
+        R = reward_c / valid_ppl ** 2
+    else:
+        R = reward_c / valid_ppl
+
+    # ENAS used `R = 80 / valid_ppl` where valid_ppl ~= 700 starting out.
+    # Since `80 / 700 ~= 0.1` and the entropy multiplier is left to be
+    # the same thing they used (1e-4), we'll use `R = 1 - valid_loss`
+    # to be on the same scale.
+    """
+
+    # reward is AMB fitness
+    R = 1. - valid_loss
+
+    rewards = R + 1e-4 * entropies
+
+    # if args.entropy_mode == 'reward':
+    #     rewards = R + args.entropy_coeff * entropies
+    # elif args.entropy_mode == 'regularizer':
+    #     rewards = R * np.ones_like(entropies)
+    # else:
+    #     raise NotImplementedError('Unkown entropy mode')
+    return rewards, valid_loss, genome, model, bp_iters
+    
+
+class GenomeConfig:
+    pass
+
+
+class Config:
+    # fake genome config for using AMB DeepGenomes
+
+    def __init__(self, num_inputs):
+        self.genome_config = GenomeConfig()
+        self.genome_config.input_keys = [-1]
+        self.genome_config.output_keys = [0]
+        self.genome_config.num_inputs = num_inputs
+
+
+class AMB:
+    # dummy class for plotting networks
+
+    def __init__(self, config):
+        self.neatcfg = GenomeConfig()
+        self.neatcfg.genome_config = config.genome_config
+
+
+def num_params(model):
+    return int(sum(x.data.nelement() for x in model.parameters()))

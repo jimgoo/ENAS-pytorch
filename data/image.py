@@ -5,7 +5,8 @@ import torchvision.transforms as transforms
 
 class Image(object):
     def __init__(self, args):
-        if args.datset == 'cifar10':
+
+        if args.dataset in ('cifar10', 'cifar'):
             Dataset = datasets.CIFAR10
 
             mean = [0.49139968, 0.48215827, 0.44653124]
@@ -27,7 +28,7 @@ class Image(object):
         self.train = t.utils.data.DataLoader(
             Dataset(root='./data', train=True, transform=transform, download=True),
             batch_size=args.batch_size, shuffle=True,
-            num_workers=args.num_workers, pin_memory=True)
+            num_workers=2, pin_memory=True)
 
         self.valid = t.utils.data.DataLoader(
             Dataset(root='./data', train=False, transform=transforms.Compose([
@@ -35,6 +36,6 @@ class Image(object):
                 normalize,
             ])),
             batch_size=args.batch_size, shuffle=False,
-            num_workers=args.num_workers, pin_memory=True)
+            num_workers=2, pin_memory=True)
 
         self.test = self.valid

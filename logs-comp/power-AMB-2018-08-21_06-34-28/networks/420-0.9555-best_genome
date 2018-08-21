@@ -1,0 +1,60 @@
+digraph neural {
+	inputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD>AT</TD><TD>V</TD><TD>AP</TD><TD>RH</TD></TR></TABLE>> color=orange shape=record style=filled]
+	"LinearLayer_1
+147
+relu" [shape=box]
+	inputs -> "LinearLayer_1
+147
+relu" [color=black]
+	"LinearLayer_1
+147
+relu" [shape=box]
+	"LinearLayer_2
+29
+relu" [shape=box]
+	"LinearLayer_1
+147
+relu" -> "LinearLayer_2
+29
+relu" [color=black]
+	"LinearLayer_2
+29
+relu" [shape=box]
+	"LinearLayer_3
+13
+relu" [shape=box]
+	"LinearLayer_2
+29
+relu" -> "LinearLayer_3
+13
+relu" [color=black]
+	"LinearLayer_4
+61
+gauss" [shape=box]
+	outputs [label=<<TABLE BORDER="0" BGCOLOR="#FFFFFF" CELLBORDER="1" CELLSPACING="0"> <TR><TD>PE</TD></TR></TABLE>> color=red shape=record style=filled]
+	"LinearLayer_4
+61
+gauss" -> outputs [color=black]
+	"LinearLayer_3
+13
+relu" [shape=box]
+	"LinearLayer_5
+108
+tanh" [shape=box]
+	"LinearLayer_3
+13
+relu" -> "LinearLayer_5
+108
+tanh" [color=black]
+	"LinearLayer_5
+108
+tanh" [shape=box]
+	"LinearLayer_4
+61
+gauss" [shape=box]
+	"LinearLayer_5
+108
+tanh" -> "LinearLayer_4
+61
+gauss" [color=black]
+}

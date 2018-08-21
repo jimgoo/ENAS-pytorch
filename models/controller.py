@@ -172,7 +172,14 @@ class Controller(torch.nn.Module):
         # followed by a previous node, for each block except the last one,
         # which only gets an activation function. The last node is the output
         # node, and its previous node is the average of all leaf nodes.
+        
+        print(self)
+        print('num_tokens', self.num_tokens)
+
         for block_idx in range(2*(self.args.num_blocks - 1) + 1):
+
+            # import ipdb; ipdb.set_trace()
+
             logits, hidden = self.forward(inputs,
                                           hidden,
                                           block_idx,
@@ -198,6 +205,9 @@ class Controller(torch.nn.Module):
                 action[:, 0] + sum(self.num_tokens[:mode]),
                 requires_grad=False)
 
+            print('block_idx', block_idx, 'action', action[:, 0].cpu().numpy(), 
+                'mode', mode, 'inputs', inputs.cpu().data.numpy()[0])
+
             if mode == 0:
                 activations.append(action[:, 0])
             elif mode == 1:
@@ -210,6 +220,8 @@ class Controller(torch.nn.Module):
                                activations,
                                self.func_names,
                                self.args.num_blocks)
+        
+        print('func_names', self.func_names)
 
         if save_dir is not None:
             for idx, dag in enumerate(dags):
@@ -219,6 +231,8 @@ class Controller(torch.nn.Module):
         if with_details:
             return dags, torch.cat(log_probs), torch.cat(entropies)
 
+        import sys
+        sys.exit(0)
         return dags
 
     def init_hidden(self, batch_size):
